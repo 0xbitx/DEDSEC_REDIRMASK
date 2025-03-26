@@ -1,0 +1,321 @@
+#!/usr/bin/python3
+#coded by 0xbit
+
+import requests, time, re, os
+from tabulate import tabulate
+from urllib.parse import urlparse
+
+RESET = "\033[0m"
+GREEN = "\033[92m"
+DRED = "\033[38;5;88m"
+BG_P = "\033[48;5;55m"
+
+green_dot = '[\033[92m●\033[0m]'
+green_command = '[\033[92m+\033[0m]'
+green_q = '[\033[92m?\033[0m]'
+red_warning = '[\033[91m!\033[0m]'
+
+def banner():
+    os.system("clear")
+    _ascii_ = f'''
+    
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠣⡉⠓⣆⠀⠐⢷⢦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⡄⢸⡆⠀⠘⡆⠹⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣟⢦⡀⠀⠀⢳⠈⣿⠀⠀⣿⠀⢻⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣄⡀⠀⠀⠀⠀⢹⠈⣷⠀⠀⢸⡀⢿⡀⢀⠏⠀⢸⡇⠀⠀⢀⡠⢴⡄⠀⣠⣴⡆⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢷⡈⠹⣦⠀⠀⠀⣸⠀⢸⡇⠀⣼⠁⠸⣇⣸⠀⠀⣿⡇⠀⣠⠏⣠⡟⢁⠎⣸⡟⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣦⣄⡀⠀⠈⡇⠀⢻⡆⠀⠀⡇⠀⢸⣧⡾⠋⠀⠀⠉⢻⡆⠀⢻⡿⠛⠋⠀⣿⢀⡎⠀⣿⠁⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠈⢿⣄⠀⣿⠀⠸⣷⣤⣸⡀⠀⢸⣏⣀⣀⣤⡴⢶⣿⠇⠀⠈⠿⣶⣦⣄⡽⠋⢀⣼⡇⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢧⠀⠈⣿⣶⠛⠀⠀⠀⢀⣸⡇⠀⠈⠻⢟⣉⣠⠴⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⢴⣿⡏⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⢠⣆⠀⠀⠀⠸⡄⠀⠘⢿⣇⢀⣤⡾⢛⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣤⣴⡶⠦⢤⣄⡀⠈⠉⠻⣆⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣷⣄⣀⣠⠿⢦⡀⠀⠉⠉⠛⠉⠉⠀⠀⠀⠀⢀⣀⣠⣴⡶⠿⠛⠉⠁⠀⠀⠀⠀⠀⠉⠓⢦⣀⠘⢷⣤⣄⡀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⠦⣄⡀⠀⠈⢻⡆⠀⠀⠀⢀⣤⠶⠛⠛⠛⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠓⠶⠾⠟⠃
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣦⠀⣸⡇⠀⠀⢀⣿⠃⠀⠀⣀⣤⣤⣤⣤⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⣿⣴⣏⣀⠀⠀⣸⣧⣤⡤⠞⠁⠀⠀⠀⢠⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⠿⠛⠉⠀⠀⠈⠉⠛⠋⠉⠀⠀⠀⠀⠀⠀⠀⣰⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⢀⣠⣴⠞⠋⠁⠀⢠⣾⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣤⣤⣴⣾⠛⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⣠⣴⠾⠛⠉⠀⠀⠀⠀⠀⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢷⣬⣥⡶⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⢠⡿⠉⣴⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠤⣤⡞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠘⣧⣘⠁⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣄⡳⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠈⠙⠛⢉⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⡉⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⢸⣥⣤⡴⠒⠛⠛⠳⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠶⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣷⠀⠀⠀⠀⠀⠀⣠⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⡇⠀⠀⢀⡴⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡿⠁⣠⠞⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⡷⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⠀⠀{BG_P}REDIRMASK{RESET}
+
+        {DRED}┃{RESET} Mask and disguise URLs to make them appear as legitimate domains{RESET} 
+        {DRED}┃{RESET} coded by: 0xbit
+    '''
+    print(_ascii_)
+
+def is_valid_url(url):
+    regex = re.compile(
+        r'^(https?://)?'
+        r'(([A-Za-z0-9.-]+)\.([A-Za-z]{2,6}))'
+        r'(:\d+)?'  
+        r'(/[\w./?%&=-]*)?'
+        r'$', re.IGNORECASE)
+    return re.match(regex, url) is not None
+
+def custom_mask():
+    while True:
+        banner()
+        try:
+            link = input(f"\n\t {green_q} TARGET URL: ").strip()
+            if is_valid_url(link):
+                break
+            
+            print(f"\n\t {red_warning} Invalid URL.")
+            time.sleep(1)
+        except KeyboardInterrupt:
+            exit(f"\n\n\t {red_warning} Exiting...\n")
+
+    option = '''
+https://facebook.com/profile.php?id=61259044315093
+https://linkedin.com/in/james
+https://discord.com/invite
+https://discord.com/channels/691926379319818536/691926379319818539
+https://youtube.com/watch?
+    '''
+    print(f'\n\t{DRED}┃{RESET} Example URL Masking Options:')
+    print('\n'.join(['\t' + line for line in  tabulate([[option]],tablefmt='rounded_grid').split('\n')]))
+    
+    url = input(f"\n\t {green_q} Mask URL: ").strip().rstrip('/')
+    parsed_url = urlparse(url)
+    
+    mask_domain = f"{parsed_url.scheme}://{parsed_url.netloc}".strip().rstrip('/')
+    
+    path = parsed_url.path.lstrip("/")
+    
+    if parsed_url.query:  
+        path += f"?{parsed_url.query}" 
+
+    keyword = path.replace("?", "ʔ").replace('=', '꞊').replace(" ", ".").replace("/", "⧸")
+
+    print(f"\n\t {green_command} Shortening the URL...")
+    
+    url_short = requests.get(f"https://is.gd/create.php?format=simple&url={link}").text.strip()
+
+    final_url = f"{mask_domain}⧸{keyword}@{url_short.replace('https://', '')}" if re.match(r"https://is\.gd/[-0-9a-zA-Z]+", url_short) else print(f"\n\t {red_warning} Failed to shorten the URL")
+    
+    if final_url:
+        print(f'\n\t {green_dot} URL: {GREEN}{final_url}{RESET}\n')
+        
+def template_mask():
+    while True:
+        banner()
+        try:
+            link = input(f"\n\t {green_q} TARGET URL: ").strip()
+            if is_valid_url(link):
+                break
+            
+            print(f"\n\t {red_warning} Invalid URL.")
+            time.sleep(1)
+        except KeyboardInterrupt:
+            exit(f"\n\n\t {red_warning} Exiting...\n")
+
+    mask_options = {
+        '1':  'Facebook Profile',
+        '2':  'Facebook Messenger',
+        '3':  'Facebook Group',
+        '4':  'Instagram Profile',
+        '5':  'Instagram Post',
+        '6':  'Discord Invite Link',
+        '7':  'Discord File Download',
+        '8':  'YouTube Live Share',
+        '9':  'YouTube Video Share',
+        '10': 'Twitch Profile',
+        '11': 'Twitch Stream',
+        '12': 'TikTok Profile',
+        '13': 'TikTok Video Share',
+        '14': 'LinkedIn Profile',
+        '15': 'Reddit Profile',
+        '16': 'Reddit Post Share',
+        '17': 'Snapchat Profile',
+        '18': 'Twitter Profile',
+        '19': 'Twitter Tweet Share',
+        '20': 'Pinterest Profile',
+        '21': 'Pinterest Pin Share',
+        '22': 'WhatsApp Profile',
+        '23': 'WhatsApp Message',
+        '24': 'Telegram Profile',
+        '25': 'Telegram Channel Share',
+        '26': 'Steam Profile',
+        '27': 'Steam Game Share',
+        '28': 'Netflix Movie Share',
+        '29': 'Netflix Series Share',
+        '30': 'Amazon Product Share',
+        '31': 'eBay Profile',
+        '32': 'eBay Product Share',
+        '33': 'StackOverflow Profile',
+        '34': 'ProtonMail Profile',
+        '35': 'Pastebin Share',
+        '36': 'Pastebin File Download',
+        '37': 'WordPress Profile',
+        '38': 'Cryptocurrency Wallet Address',
+        '39': 'GitHub Profile',
+        '40': 'GitHub Repository',
+        '41': 'Google Drive File Share',
+        '42': 'Google Docs Share',
+        '43': 'Dropbox File Share',
+        '44': 'MediaFire File Share',
+        '45': 'Mega File Share',
+        '46': 'Spotify Profile',
+        '47': 'Spotify Playlist',
+        '48': 'Deezer Artist',
+        '49': 'SoundCloud Profile',
+        '50': 'SoundCloud Track',
+        '51': 'Vimeo Video Share',
+        '52': 'Bandcamp Profile',
+        '53': 'Bandcamp Track',
+        '54': 'OnlyFans Profile',
+        '55': 'Patreon Profile',
+        '56': 'Buy Me a Coffee Profile',
+        '57': 'Ko-Fi Profile',
+        '58': 'GoFundMe Campaign',
+        '59': 'Kickstarter Campaign',
+        '00': f'{DRED}BACK{RESET}'
+    }
+
+    def split_into_columns(data, items_per_column=15):
+        items = list(data.items())
+        num_rows = items_per_column
+        num_columns = -(-len(items) // num_rows)
+
+        table = [[] for _ in range(num_rows)]
+
+        for index, (key, value) in enumerate(items):
+            row_position = index % num_rows 
+            table[row_position].append(f"{key}. {value}") 
+
+        for row in table:
+            while len(row) < num_columns:
+                row.append("")
+
+        return table
+
+    table = split_into_columns(mask_options, items_per_column=15)
+    formatted_output = tabulate(table, tablefmt="rounded_grid")
+    print(f"\n\t{DRED}┃{RESET} Masking Options:")
+    print('\n'.join(['\t' + line for line in formatted_output.split('\n')]))
+            
+    try:
+        select = input(f"\n\t {green_q} SELECT: ")
+
+        value_path = {
+            '1':  'https://facebook.com/profile.php?id=31551041315093',  
+            '2':  'https://m.me/mysuxsrc',
+            '3':  'https://facebook.com/groups/133456389012545',
+            '4':  'https://instagram.com/mysuxsrc', 
+            '5':  'https://instagram.com/p/83274237883432',
+            '6':  'https://discord.gg/invite',
+            '7':  'https://cdn.discordapp.com/attachments/1335183590412705812/1352042530135805227/filename.png',
+            '8':  'https://youtube.com/live/LgyN0NRK5YQ?si=', 
+            '9':  'https://youtube.com/watch?v=',  
+            '10': 'https://twitch.tv/mysuxsrc', 
+            '11': 'https://twitch.tv/mysuxsrc/live', 
+            '12': 'https://tiktok.com/@mysuxsrc', 
+            '13': 'https://tiktok.com/t/32143213234', 
+            '14': 'https://linkedin.com/in/mysuxsrc',  
+            '15': 'https://reddit.com/user/mysuxsrc',  
+            '16': 'https://reddit.com/r/InternetPH/comments/14bgl0w', 
+            '17': 'https://snapchat.com/add/mysuxsrc', 
+            '18': 'https://twitter.com/mysuxsrc',  
+            '19': 'https://twitter.com/mysuxsrc/status/TWEET_ID', 
+            '20': 'https://pinterest.com/mysuxsrc',  
+            '21': 'https://pinterest.com/pin/987654321012345678', 
+            '22': 'https://wa.me/639171234567', 
+            '23': 'https://wa.me/639171234567?text=93hdj89hjwf', 
+            '24': 'https://t.me/mysuxsrc', 
+            '25': 'https://t.me/s/mysuxsrc', 
+            '26': 'https://steamcommunity.com/id/mysuxsrc',  
+            '27': 'https://store.steampowered.com/app/730',  
+            '28': 'https://www.netflix.com/title/432432452354', 
+            '29': 'https://www.netflix.com/title/524332423432', 
+            '30': 'https://amazon.com/dp/673465634534534',  
+            '31': 'https://ebay.com/usr/mysuxsrc', 
+            '32': 'https://ebay.com/itm/4324343654262242',  
+            '33': 'https://stackoverflow.com/users/43165423623453245', 
+            '34': 'https://proton.me/u/mysuxsrc', 
+            '35': 'https://pastebin.com/541353623423142', 
+            '36': 'https://pastebin.com/raw/321512543452341234', 
+            '37': 'https://wordpress.com/mysuxsrc',  
+            '38': 'https://blockchain.com/btc/address/3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy', 
+            '39': 'https://github.com/mysuxsrc', 
+            '40': 'https://github.com/mysuxsrc/mycode',  
+            '41': 'https://drive.google.com/file/d/1b2_ZjzgvrSw0hBMgn-rnEbjp3Uq0XTKJ/view', 
+            '42': 'https://docs.google.com/document/d/1b2_ZjzgvrSw0hBMgn-rnEbjp3Uq0XTKJ/view',  
+            '43': 'https://dropbox.com/s/1b2_ZjzgvrSw0hBMgn-rnEbjp3Uq0XTKJ/myfile', 
+            '44': 'https://mediafire.com/file/1b2_ZjzgvrSw0hBMgn-rnEbjp3Uq0XTKJ/myfile',  
+            '45': 'https://mega.nz/file/1b2_ZjzgvrSw0hBMgn-rnEbjp3Uq0XTKJ#fdsart3wresg34c',  
+            '46': 'https://open.spotify.com/user/mysuxsrc', 
+            '47': 'https://open.spotify.com/playlist/213414134254365436',  
+            '48': 'https://deezer.com/en/artist/543513252452442', 
+            '49': 'https://soundcloud.com/mysuxsrc', 
+            '50': 'https://soundcloud.com/mysuxsrc/track/21345435344321', 
+            '51': 'https://vimeo.com/436345632542352', 
+            '52': 'https://bandcamp.com/mysuxsrc', 
+            '53': 'https://bandcamp.com/track/53454325342532532',  
+            '54': 'https://onlyfans.com/mysuxsrc', 
+            '55': 'https://patreon.com/mysuxsrc',  
+            '56': 'https://buymeacoffee.com/mysuxsrc',  
+            '57': 'https://ko-fi.com/mysuxsrc',  
+            '58': 'https://gofundme.com/f/645263345235432', 
+            '59': 'https://kickstarter.com/projects/5342543263245324',  
+        }
+
+        if select == '0' or select == '00':
+            main()
+
+        parsed_url = urlparse(value_path.get(select))
+        selected = mask_options.get(select)
+        
+        mask_domain = f"{parsed_url.scheme}://{parsed_url.netloc}".strip().rstrip('/')
+        
+        path = parsed_url.path.lstrip("/")
+        
+        if parsed_url.query:  
+            path += f"?{parsed_url.query}" 
+
+        keyword = path.replace("?", "ʔ").replace('=', '꞊').replace(" ", ".").replace("/", "⧸")
+
+        print(f"\n\t {green_command} Shortening the URL...")
+
+        url_short = requests.get(f"https://is.gd/create.php?format=simple&url={link}").text.strip()
+
+        final_url = f"{mask_domain}⧸{keyword}@{url_short.replace('https://', '')}" if re.match(r"https://is\.gd/[-0-9a-zA-Z]+", url_short) else print(f"\n\t {red_warning} Failed to shorten the URL")
+        
+        if final_url:
+            print(f"\n\t {DRED}┃{RESET} TEMPLATE: {GREEN}{selected.upper()}{RESET}")
+            print(f'\n\t {green_dot} URL: {GREEN}{final_url}{RESET}\n')
+    
+    except KeyboardInterrupt:
+        exit(f"\n\n\t {red_warning} Exiting...\n")
+    
+def main():
+    banner()
+    option = f'''
+1. Custom Mask
+2. Template Mask
+0. {DRED}Exit{RESET}'''
+    print('\n'.join(['\t' + line for line in  tabulate([[option]],tablefmt='rounded_grid').split('\n')]))
+    
+    try:
+        select = input(f'\n\t {green_q} SELECT: ')
+        if select == '1':
+            custom_mask()
+        elif select == '2':
+            template_mask()
+        elif select == '0':
+            exit(f'\n\t {red_warning} Exiting...\n')
+        else:
+            print(f"\n\t {red_warning} Invalid option!")
+            time.sleep(1)
+            main()
+    except KeyboardInterrupt:
+        exit(f"\n\n\t {red_warning} Exiting...\n")
+
+if __name__ == '__main__':
+    main()
