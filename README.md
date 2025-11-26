@@ -4,13 +4,19 @@
 </p>
 
 <h1 align="center">DEDSEC_REDIRMASK</h1>
-<h4 align="center">REDIRMASK - Advanced Link Masking Tool that allows you to disguise URLs</h4>
+<h4 align="center">REDIRMASK - Advanced Link Masking Tool for Ethical Hackers & Penetration Testers</h4>
 
 ### DESCRIPTION
-REDIRMASK is a powerful tool that allows you to disguise URLs, making them appear as legitimate links from well-known platforms. Whether you want to create a custom-masked URL or use pre-built templates to make your link look like a social media profile, a video share, or a file download, REDIRMASK provides a seamless way to achieve it.
-Features
+REDIRMASK is a powerful cybersecurity tool designed for ethical hackers, penetration testers, and security researchers to disguise URLs during authorized security assessments. This advanced tool allows you to mask URLs, making them appear as legitimate links from well-known platforms—essential for social engineering testing, phishing simulations, and red team operations.
 
-### Features
+### KEY FEATURES FOR SECURITY PROFESSIONALS
+- **Social Engineering Testing**: Create convincing masked URLs for authorized phishing simulations
+- **Penetration Testing**: Disguise payload delivery links during security assessments
+- **Red Team Operations**: Bypass basic URL filters and domain reputation checks
+- **Security Awareness**: Demonstrate how malicious links can be disguised in training scenarios
+- **Obfuscation Techniques**: Advanced URL manipulation for authorized security research
+
+## Features
 
 Two Masking Modes
   * Custom Masking – Manually set both the masked link and the target link.
@@ -30,7 +36,7 @@ Mode 1: Custom Masking
 
     Example:
     Mask Link: https://google.com/search?q=free-money
-    Target Link: https://scam-website.com/login
+    Target Link: https://phishing.com/login
 
 Mode 2: Template Masking
 
@@ -39,7 +45,7 @@ Mode 2: Template Masking
     Select a pre-built template (e.g., Facebook, YouTube, Discord).
 
     Example:
-    Target Link: https://yourwebsite.com/login
+    Target Link: https://phishing.com/login
     Selected Template: Facebook Profile
 
 ### INSTALLATION
@@ -53,8 +59,13 @@ Mode 2: Template Masking
 * Kali Linux 
 * Parrot OS 
 * Ubuntu
-  
-## Legal Disclaimer
 
-This tool is intended for educational and security research purposes only. Unauthorized usage may be illegal in your jurisdiction. The author is not responsible for any misuse of this tool.
+### LEGAL DISCLAIMER
+⚠️ **WARNING**: This tool is intended for:
+- Authorized penetration testing
+- Security research and education
+- Ethical hacking with explicit permission
+- Red team exercises with proper authorization
+
+**Unauthorized use of this tool for malicious purposes is strictly prohibited and may violate local and international laws. Always ensure you have explicit permission before testing any system or individual. The developers are not responsible for misuse of this software.**
 
